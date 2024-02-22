@@ -1,0 +1,213 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+<meta name="description" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>什么是倒排索引 | SilentRhythm&#39;s Blog</title>
+
+<link rel="shortcut icon" href="https://faxjiangyi.github.io/favicon.ico?v=1708613223234">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://faxjiangyi.github.io/styles/main.css">
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages//dart.min.js"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script> -->
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-N75PFBTYPH"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', 'G-N75PFBTYPH');
+</script>
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+    
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.1/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({startOnLoad:true});</script> 
+    
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="/">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            SilentRhythm&#39;s Blog
+        </div>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" id="changeNavbar">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+            <div class="nav-item">
+                
+                <a href="/" class="menu gt-a-link">
+                    首页
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/archives" class="menu gt-a-link">
+                    归档
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/tags" class="menu gt-a-link">
+                    标签
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/post/about" class="menu gt-a-link">
+                    关于
+                </a>
+                
+            </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1708613223234"
+                action="/search/">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+<script>
+    /* 移动端导航栏展开/收起切换 */
+    document.getElementById('changeNavbar').onclick = () => {
+        var element = document.getElementById('navbarSupportedContent');
+        if (element.style.display === 'none' || element.style.display === '') {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+</script>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    什么是倒排索引
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2023-11-07 ·
+                    </time>
+                    
+                        <a href="https://faxjiangyi.github.io/tag/elasticsearch/" class="post-tags">
+                            # ElasticSearch
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <h1 id="概念">概念</h1>
+<p>​	<strong>倒排索引（英语：Inverted index）</strong>，也常被称为反向索引，是一种索引方法，被用来存储在全文搜索下某个单词在一个文档或者一组文档中的存储位置的映射。它是文档检索系统中最常用的数据结构。通过倒排索引，可以根据单词快速获取包含这个单词的文档列表。倒排索引主要由两个部分组成：“单词词典”和“倒排文件”。</p>
+<!-- more -->
+<p>倒排索引有两种不同的形式：</p>
+<p>​	一条记录的水平反向索引：包含每个引用单词的文档的列表。</p>
+<p>​	一个单词的水平反向索引：又包含每个单词在一个文档中的位置。</p>
+<p>后者的形式提供了更多的兼容性（比如短语搜索），但是需要更多的时间和空间来创建。</p>
+<p>现代搜索引擎的索引都是基于倒排索引。相比“签名文件”、“后缀树”等索引结构，“倒排索引”是实现单词到文档映射关系的最佳实现方式和最有效的索引结构。</p>
+<h1 id="为什么叫倒排索引">为什么叫倒排索引</h1>
+<p>由于正常的数据结构是通过记录来确定属性，而是由属性值来确定记录的位置，因而称为倒排索引(inverted index)。</p>
+<p>举例：</p>
+<p>​	关系数据库中，先找到行，再找到对应的值；</p>
+<p>​	倒排索引中，先找到值，再找到对应的行。</p>
+<h1 id="过程">过程</h1>
+<p><strong>索引创建过程</strong></p>
+<ol>
+<li>输入原始数据并进行编号，形成文档列表</li>
+</ol>
+<figure data-type="image" tabindex="1"><img src="https://faxjiangyi.github.io/post-images/1699327889948.png" alt="" loading="lazy"></figure>
+<ol start="2">
+<li>按照分词库进行单词拆分，得到词条。对词条进行编号，以词条创建索引。然后记录下包含该词条的所有文档编号（及其它信息）。</li>
+</ol>
+<figure data-type="image" tabindex="2"><img src="https://faxjiangyi.github.io/post-images/1699327898992.png" alt="" loading="lazy"></figure>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://faxjiangyi.github.io/post/dindin/" class="post-title gt-a-link">
+                    Dindin
+                </a>
+            </div>
+        
+
+        
+
+        
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">我的幸福，即我与生活搏斗的故事。</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/faxjiangyi" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        <a href="/friends">友情链接</a>
+    </div>
+    <div>
+        Theme <a href="https://github.com/imhanjie/gridea-theme-pure" target="_blank">Pure</a>, Powered by <a
+                href="https://gridea.dev" target="_blank">Gridea</a> | <a href="https://faxjiangyi.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+</div>
+
+<script>
+  hljs.highlightAll()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

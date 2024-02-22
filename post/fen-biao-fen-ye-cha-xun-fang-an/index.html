@@ -1,0 +1,264 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+<meta name="description" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>分表分页查询方案 | SilentRhythm&#39;s Blog</title>
+
+<link rel="shortcut icon" href="https://faxjiangyi.github.io/favicon.ico?v=1708613223234">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://faxjiangyi.github.io/styles/main.css">
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages//dart.min.js"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script> -->
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-N75PFBTYPH"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', 'G-N75PFBTYPH');
+</script>
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+    
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.1/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({startOnLoad:true});</script> 
+    
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="/">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            SilentRhythm&#39;s Blog
+        </div>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" id="changeNavbar">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+            <div class="nav-item">
+                
+                <a href="/" class="menu gt-a-link">
+                    首页
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/archives" class="menu gt-a-link">
+                    归档
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/tags" class="menu gt-a-link">
+                    标签
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/post/about" class="menu gt-a-link">
+                    关于
+                </a>
+                
+            </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1708613223234"
+                action="/search/">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+<script>
+    /* 移动端导航栏展开/收起切换 */
+    document.getElementById('changeNavbar').onclick = () => {
+        var element = document.getElementById('navbarSupportedContent');
+        if (element.style.display === 'none' || element.style.display === '') {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+</script>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    分表分页查询方案
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2023-11-07 ·
+                    </time>
+                    
+                        <a href="https://faxjiangyi.github.io/tag/distributed/" class="post-tags">
+                            # 分布式
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <p>解决问题：分表后，查询T表，N页（X=(N-1)*Y）的Y条数据</p>
+<!-- more -->
+<p>[ 参考文献 ] : https://cloud.tencent.com/developer/article/1048654<br>
+[ 参考文献 ] : https://cloud.tencent.com/developer/article/2202460</p>
+<pre><code class="language-sql">-- 分库分表前的查询语句
+select * from T order by time limit Y offset X 
+</code></pre>
+<h1 id="方案一-全局视野法">方案一 全局视野法</h1>
+<ol>
+<li>将 order by time limit Y offset X，改写成 order by time limit X+Y offset 0 ；</li>
+<li>假设共分为N个库，服务层将得到N*(X+Y)条数据：即例子中的6页数据；</li>
+<li>服务层对得到的N*(X+Y)条数据进行内存排序，内存排序后再取偏移量X后的Y条记录，就是全局视野所需的一页数据。</li>
+</ol>
+<h2 id="优点">优点</h2>
+<ul>
+<li>​	sql修改简单，能够得到全局视野，业务精确无损。</li>
+</ul>
+<h2 id="缺点">缺点</h2>
+<ul>
+<li>每个分库都要进行查询；</li>
+<li>每个分库都要返回更多的数据；</li>
+<li>代码层面还要进行二次排序，增大了服务层的计算量；</li>
+<li>随着页码的增大，返回数据增多，性能会急剧下降。</li>
+</ul>
+<h1 id="方案二-业务折衷-禁止跳页查询">方案二 业务折衷-禁止跳页查询</h1>
+<ol>
+<li>产品不提供“直接跳到指定页面”的功能，而只提供“下一页”的功能。</li>
+<li>将查询order by time offset X limit Y，改写成order by time where time &gt; ${上一页的最大值} limit Y</li>
+</ol>
+<h1 id="方案三-业务折衷-允许精度丢失">方案三 业务折衷-允许精度丢失</h1>
+<ol>
+<li>假设查询100页后的100条数据，两个分片；</li>
+<li>将 offset 10000 limit 100 改写为 offset 5000 limit 50；</li>
+<li>每个分库偏移5000（一半），获取50条数据（半页）；</li>
+<li>得到的数据集进行合并，当然这一页数据并不是精准的。</li>
+</ol>
+<h1 id="方案四-二次查询法终极方案">方案四 二次查询法（终极方案）</h1>
+<p>假设查询200页后的5条数据，3个分片。</p>
+<p><strong>步骤一：查询改写</strong></p>
+<p>3个分片，改写为 select * from T order by time offset 333 limit 5，假设返回数据如下：</p>
+<figure data-type="image" tabindex="1"><img src="https://faxjiangyi.github.io/post-images/1699332153205.jpeg" alt="" loading="lazy"></figure>
+<p><strong>步骤二：找到返回全部数据的排序列最小值</strong></p>
+<p>​	定位到最小值是分库1的1487501123，这个过程只需要比较各个分库第一条数据，时间复杂度很低：</p>
+<figure data-type="image" tabindex="2"><img src="https://faxjiangyi.github.io/post-images/1699332160461.jpeg" alt="" loading="lazy"></figure>
+<p><strong>步骤三：查询二次改写</strong></p>
+<p>第二次要改写成一个between语句，between起点是time_min，between的终点是各分库返回数据的最大值：</p>
+<pre><code class="language-sql">-- 全局最小值1487501123
+-- 第一个分库，第一次返回数据的最大值是 1487501523
+select * from T order by time where time between 1487501123 and 1487501523;
+-- 第二个分库，第一次返回数据的最大值是 1487501323
+select * from T order by time where time between 1487501123 and 1487501323;
+-- 第三个分库，第一次返回数据的最大值是 1487501553
+select * from T order by time where time between 1487501123 and 1487501553;
+</code></pre>
+<p>相对第一次查询，第二次查询返回比第一次查询结果集更多的数据，假设三个分库返回的数据如下（粉底为多返回的数据）：</p>
+<figure data-type="image" tabindex="3"><img src="https://faxjiangyi.github.io/post-images/1699332167462.jpeg" alt="" loading="lazy"></figure>
+<p>可以看到：</p>
+<p>分库一：由于time_min来自原分库一，所以分库一的返回结果集和第一次查询相同；</p>
+<p>分库二：头部的1条记录（time最小的记录）是新的（上图中粉色记录）；</p>
+<p>分库三：头部的2条记录（time最小的2条记录）是新的（上图中粉色记录）。</p>
+<p><strong>步骤四：找到time_min在全局的offset</strong></p>
+<figure data-type="image" tabindex="4"><img src="https://faxjiangyi.github.io/post-images/1699332173288.jpeg" alt="" loading="lazy"></figure>
+<p>在每个结果集中虚拟一个time_min记录节点（红字）：</p>
+<p>分库一：time_min在第一个库的offset是333；</p>
+<p>分库二：1487501133的offset是333（根据第一次查询条件得出的），故倒推虚拟time_min在第二个库的offset是331；</p>
+<p>分库三：1487501143的offset是333（根据第一次查询条件得出的），故倒推虚拟time_min在第三个库的offset是330。</p>
+<p>综上，time_min在全局的offset是333+331+330=994。</p>
+<p><strong>步骤五：得到了time_min在全局的offset，根据二次查询结果，得出全局offset 1000 limit 5的记录</strong></p>
+<p>time_min的全局offset是994，去除合并后前7条数据（offset + 6 = 1000，994自己算一条），得出结果集（黄底数据）</p>
+<figure data-type="image" tabindex="5"><img src="https://faxjiangyi.github.io/post-images/1699332180056.jpeg" alt="" loading="lazy"></figure>
+<h2 id="优点-2">优点</h2>
+<p>精确的返回业务所需数据，每不会随着翻页增加数据的返回量；</p>
+<h2 id="缺点-2">缺点</h2>
+<p>需要进行两次数据库查询。</p>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://faxjiangyi.github.io/post/fen-biao-fei-sharding-key-zen-me-cha-xun/" class="post-title gt-a-link">
+                    分表非Sharding-Key怎么查询
+                </a>
+            </div>
+        
+
+        
+
+        
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">我的幸福，即我与生活搏斗的故事。</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/faxjiangyi" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        <a href="/friends">友情链接</a>
+    </div>
+    <div>
+        Theme <a href="https://github.com/imhanjie/gridea-theme-pure" target="_blank">Pure</a>, Powered by <a
+                href="https://gridea.dev" target="_blank">Gridea</a> | <a href="https://faxjiangyi.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+</div>
+
+<script>
+  hljs.highlightAll()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

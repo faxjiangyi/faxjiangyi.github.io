@@ -1,0 +1,281 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+<meta name="description" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>通过GitHub-Copilot使用GPT-4模型 | SilentRhythm&#39;s Blog</title>
+
+<link rel="shortcut icon" href="https://faxjiangyi.github.io/favicon.ico?v=1708613223234">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://faxjiangyi.github.io/styles/main.css">
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages//dart.min.js"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script> -->
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-N75PFBTYPH"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', 'G-N75PFBTYPH');
+</script>
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+    
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.1/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({startOnLoad:true});</script> 
+    
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="/">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            SilentRhythm&#39;s Blog
+        </div>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" id="changeNavbar">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+            <div class="nav-item">
+                
+                <a href="/" class="menu gt-a-link">
+                    首页
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/archives" class="menu gt-a-link">
+                    归档
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/tags" class="menu gt-a-link">
+                    标签
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/post/about" class="menu gt-a-link">
+                    关于
+                </a>
+                
+            </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1708613223234"
+                action="/search/">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+<script>
+    /* 移动端导航栏展开/收起切换 */
+    document.getElementById('changeNavbar').onclick = () => {
+        var element = document.getElementById('navbarSupportedContent');
+        if (element.style.display === 'none' || element.style.display === '') {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+</script>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    通过GitHub-Copilot使用GPT-4模型
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2024-01-27 ·
+                    </time>
+                    
+                </div>
+                <div class="post-content">
+                    <p>由于ChatGPT-plus官方充值/开通存在诸多困难，故通过copilot使用gpt-4，支持ChatGPT-NextWeb</p>
+<!-- more -->
+<h2 id="前言">前言</h2>
+<h3 id="动机">动机</h3>
+<p>想搞GPT-4一直搞不下来，遇到了以下困难：</p>
+<ol>
+<li>OpenAI不支持大陆手机号注册（通过虚拟手机号平台搞定了）；</li>
+<li>ChatGPT-plus开通要排队（未解决）；</li>
+<li>ChatGPT-plus不能绑定大陆银行卡（未解决，网友推荐虚拟卡，有手续费）。</li>
+</ol>
+<p>由于Copilot本身支持GPT-4，机缘巧合下，在v2ex看到可以用GitHub-Copilot作为GPT-4的代理，故捣鼓进行实现。</p>
+<p>使用Copilot对比ChatGPT-plus官方开通官方有以下好处：</p>
+<ol>
+<li>Copilot只需10刀/月，ChatGPT-plus需要20刀；</li>
+<li>Copilot开通不用排队；</li>
+<li>Copilot可以使用大陆银行卡支付（绑定PayPal）</li>
+</ol>
+<h3 id="集成内容">集成内容</h3>
+<h4 id="github-copilot">GitHub Copilot</h4>
+<p>需要先开通Copilot，作为GPT-4接口调用的提供方，开通过程不在本文赘述。</p>
+<h4 id="copilot-gpt4-service"><a href="https://github.com/aaamoon/copilot-gpt4-service">copilot-gpt4-service</a></h4>
+<p>作为Copilot的代理，将 Github-Copilot 转换为 ChatGPT。</p>
+<h4 id="chatgpt-next-web"><a href="https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web">ChatGPT-Next-Web</a></h4>
+<p>流行的Chat-GPT Web端图形界面。</p>
+<h2 id="集成步骤">集成步骤</h2>
+<h3 id="部署copilot-gpt4-service">部署copilot-gpt4-service</h3>
+<p>注意HOST=0.0.0.0，否则无法容器外访问</p>
+<p>8080端口常用，故暴露38080，可按实际情况</p>
+<pre><code class="language-sh">docker run -d  aaamoon/copilot-gpt4-service:latest -p 38080:8080 --restart=always --env=HOST=0.0.0.0 
+</code></pre>
+<p>启动后logs会显示相应的IP地址，按需取用（若客户端使用docker部署，则取veth对应地址）</p>
+<pre><code>2024-01-27 02:07:43 Service is running at:
+2024-01-27 02:07:43  - Local               : http://0.0.0.0:8080
+2024-01-27 02:07:43  - Network             : http://127.0.0.1:8080
+2024-01-27 02:07:43  - Network             : http://172.17.0.2:8080
+</code></pre>
+<h3 id="获取copilot的访问token">获取Copilot的访问token</h3>
+<p>copilot-gpt4-service的GitHub主页中有相关python/node脚本，以下使用简单方法，通过apifox（postman亦可）获取</p>
+<h4 id="步骤一获取device_code并验证登录">步骤一：获取device_code并验证登录</h4>
+<p>url：<code>https://github.com/login/device/code</code></p>
+<p>json固定参数：</p>
+<pre><code class="language-json">{
+    &quot;client_id&quot;: &quot;Iv1.b507a08c87ecfe98&quot;,
+    &quot;scope&quot;: &quot;read:user&quot;
+}
+</code></pre>
+<p>结果：</p>
+<pre><code>device_code=XXX&amp;expires_in=899&amp;interval=5&amp;user_code=9394-156C&amp;verification_uri=https%3A%2F%2Fgithub.com%2Flogin%2Fdevice
+</code></pre>
+<h4 id="步骤二github-oauth2-验证">步骤二：Github Oauth2 验证</h4>
+<ol>
+<li>
+<p>浏览器打开步骤一返回的verification_uri: <code>https://github.com/login/device</code>；</p>
+</li>
+<li>
+<p>登录GitHub账号，并输入步骤一返回的user_code；</p>
+</li>
+<li>
+<p>验证通过即可。</p>
+</li>
+</ol>
+<h4 id="步骤三验证通过后获取access_token">步骤三：验证通过后，获取access_token</h4>
+<p>url：<code>https://github.com/login/oauth/access_token</code></p>
+<p>json参数：</p>
+<pre><code class="language-json">{
+    &quot;client_id&quot;: &quot;Iv1.b507a08c87ecfe98&quot;,
+    &quot;device_code&quot;: &quot;步骤一返回的device_code&quot;,
+    &quot;grant_type&quot;: &quot;urn:ietf:params:oauth:grant-type:device_code&quot;
+}
+</code></pre>
+<p>结果即为copilot的access_token：</p>
+<pre><code>access_token=YYYYYY&amp;scope=&amp;token_type=bearer
+</code></pre>
+<h3 id="部署chatgpt-next-web">部署ChatGPT-Next-Web</h3>
+<p>BASE_URL：取copilot-gpt4-service的访问地址</p>
+<p>CODE：ChatGPT-Next-Web的登录密码</p>
+<p>OPENAI_API_KEY：copilot的access_token</p>
+<pre><code class="language-sh">docker run --name=demo2 --env=CODE=${客户端登录密码} --env=OPENAI_API_KEY=${你的copilot_access_token} --env=BASE_URL=http://172.17.0.2:8080  -p 33003:3000 --restart=always -d yidadaa/chatgpt-next-web:latest
+</code></pre>
+<h2 id="验证">验证</h2>
+<h3 id="如何判断是不是-gpt-4-模型">如何判断是不是 GPT-4 模型</h3>
+<p>鲁迅为什么暴打周树人？</p>
+<ul>
+<li>GPT-3.5 会一本正经的胡说八道</li>
+<li>GPT-4 表示鲁迅和周树人是同一个人</li>
+</ul>
+<p>我爸妈结婚时为什么没有邀请我？</p>
+<ul>
+<li>GPT-3.5 他们当时认为你还太小，所以没有邀请你。</li>
+<li>GPT-4 他们结婚时你还没出生。</li>
+</ul>
+<hr>
+<p>访问 <code>http://localhost:33000/#/</code>，选择gpt-4模型，进行验证：</p>
+<figure data-type="image" tabindex="1"><img src="https://faxjiangyi.github.io/post-images/1706361547032.png" alt="" loading="lazy"></figure>
+<p>完成！</p>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://faxjiangyi.github.io/post/fen-bu-shi-shi-wu-de-jie-jue-fang-an/" class="post-title gt-a-link">
+                    分布式事务的解决方案
+                </a>
+            </div>
+        
+
+        
+
+        
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">我的幸福，即我与生活搏斗的故事。</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/faxjiangyi" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        <a href="/friends">友情链接</a>
+    </div>
+    <div>
+        Theme <a href="https://github.com/imhanjie/gridea-theme-pure" target="_blank">Pure</a>, Powered by <a
+                href="https://gridea.dev" target="_blank">Gridea</a> | <a href="https://faxjiangyi.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+</div>
+
+<script>
+  hljs.highlightAll()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

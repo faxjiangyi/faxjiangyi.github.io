@@ -1,0 +1,310 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+<meta name="description" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>Java自动装箱和拆箱 | SilentRhythm&#39;s Blog</title>
+
+<link rel="shortcut icon" href="https://faxjiangyi.github.io/favicon.ico?v=1708613223234">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://faxjiangyi.github.io/styles/main.css">
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages//dart.min.js"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script> -->
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-N75PFBTYPH"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', 'G-N75PFBTYPH');
+</script>
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+    
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.1/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({startOnLoad:true});</script> 
+    
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="/">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            SilentRhythm&#39;s Blog
+        </div>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" id="changeNavbar">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+            <div class="nav-item">
+                
+                <a href="/" class="menu gt-a-link">
+                    首页
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/archives" class="menu gt-a-link">
+                    归档
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/tags" class="menu gt-a-link">
+                    标签
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/post/about" class="menu gt-a-link">
+                    关于
+                </a>
+                
+            </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1708613223234"
+                action="/search/">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+<script>
+    /* 移动端导航栏展开/收起切换 */
+    document.getElementById('changeNavbar').onclick = () => {
+        var element = document.getElementById('navbarSupportedContent');
+        if (element.style.display === 'none' || element.style.display === '') {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+</script>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    Java自动装箱和拆箱
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2023-11-09 ·
+                    </time>
+                    
+                        <a href="https://faxjiangyi.github.io/tag/java/" class="post-tags">
+                            # Java
+                        </a>
+                    
+                        <a href="https://faxjiangyi.github.io/tag/interview/" class="post-tags">
+                            # 面经
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <p>Java中基础数据类型与它们的包装类进行运算时，编译器会自动帮我们进行转换，转换过程对程序员是透明的，装箱和拆箱可以让我们的代码更简洁易懂，本质是Java的语法糖。</p>
+<!-- more -->
+<ul>
+<li>装箱： 基本类型 =&gt; 包装类型；</li>
+<li>拆箱： 包装类型 =&gt; 基本类型。</li>
+</ul>
+<h1 id="基本类型与包装类型对应">基本类型与包装类型对应</h1>
+<table>
+<thead>
+<tr>
+<th>基本类型</th>
+<th>包装类型</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>boolean</td>
+<td>Boolean</td>
+</tr>
+<tr>
+<td>byte</td>
+<td>Byte</td>
+</tr>
+<tr>
+<td>char</td>
+<td>Character</td>
+</tr>
+<tr>
+<td>float</td>
+<td>Float</td>
+</tr>
+<tr>
+<td>int</td>
+<td>Integer</td>
+</tr>
+<tr>
+<td>long</td>
+<td>Long</td>
+</tr>
+<tr>
+<td>short</td>
+<td>Short</td>
+</tr>
+<tr>
+<td>double</td>
+<td>Double</td>
+</tr>
+</tbody>
+</table>
+<h1 id="装箱拆箱的触发">装箱拆箱的触发</h1>
+<p>​	当表格中基础类型与它们的包装类有如下几种情况时，编译器会自动帮我们进行装箱或拆箱：</p>
+<ul>
+<li>进行 = 赋值操作（装箱或拆箱）;</li>
+<li>进行+，-，*，/混合运算 （拆箱）;</li>
+<li>进行&gt;,&lt;,==比较运算（拆箱）;</li>
+<li>调用equals进行比较（装箱）;</li>
+<li>ArrayList，HashMap等包装类泛型对象，添加基础类型数据时（装箱）.</li>
+</ul>
+<p>例以下代码:</p>
+<ol>
+<li><code> Integer i = 100</code> 等价于 <code> Integer i = Integer.valueOf(100)</code></li>
+<li><code> int i = new Integer(100)</code> 等价于 <code> int i = new Integer(100).intValue()</code></li>
+</ol>
+<h1 id="容易踩坑的点">容易踩坑的点</h1>
+<h2 id="jvm缓存">JVM缓存</h2>
+<p>如Integer类的valueOf(int)实现：</p>
+<pre><code class="language-java">public static Integer valueOf(int i) {
+    if (i &gt;= IntegerCache.low &amp;&amp; i &lt;= IntegerCache.high)
+        return IntegerCache.cache[i + (-IntegerCache.low)];
+    return new Integer(i);
+}
+</code></pre>
+<p>可见，-128到127的Integer对象会被JVM缓存，所以有以下情况：</p>
+<pre><code class="language-java">public static void main(String[] args) {
+    // 等价于 Integer i1 = Integer.valueOf(100);
+    Integer i1 = 100;
+    Integer i2 = 100;
+    Integer i3 = 200;
+    Integer i4 = 200;
+
+    System.out.println(i1 == i2);
+    System.out.println(i3 == i4);
+}
+
+// -------------------输出-------------------
+// true
+// false
+</code></pre>
+<p>通过自动装箱，i1和i2指向cache中同一个对象，i3和i4指向两个对象。</p>
+<h2 id="valueof的不同实现">valueOf的不同实现</h2>
+<p>以Double为例</p>
+<pre><code class="language-java">public static void main(String[] args) {
+    Double d1 = 1.0;
+    Double d2 = 1.0;
+    Double d3 = 11111.0;
+    Double d4 = 11111.0;
+
+    System.out.println(d1 == d2);
+    System.out.println(d3 == d4);
+}
+
+// -------------------输出-------------------
+// false
+// false
+</code></pre>
+<p>至于具体原因，可见Double类的valueOf的实现。</p>
+<pre><code class="language-java">public static Double valueOf(double d) {
+    return new Double(d);
+}
+</code></pre>
+<p>需要记住：</p>
+<ul>
+<li>Integer、Short、Byte、Character、Long这几个类的valueOf方法的实现是类似的。</li>
+<li>Double、Float的valueOf方法的实现是类似的。</li>
+</ul>
+<p>如此设计的原因：在某个范围内的整型数值的个数是有限的，而浮点数却不是。</p>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://faxjiangyi.github.io/post/mq-xiao-xi-you-xu-xing-bao-zheng/" class="post-title gt-a-link">
+                    MQ消息有序性保证
+                </a>
+            </div>
+        
+
+        
+
+        
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">我的幸福，即我与生活搏斗的故事。</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/faxjiangyi" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        <a href="/friends">友情链接</a>
+    </div>
+    <div>
+        Theme <a href="https://github.com/imhanjie/gridea-theme-pure" target="_blank">Pure</a>, Powered by <a
+                href="https://gridea.dev" target="_blank">Gridea</a> | <a href="https://faxjiangyi.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+</div>
+
+<script>
+  hljs.highlightAll()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

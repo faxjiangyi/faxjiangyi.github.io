@@ -1,0 +1,365 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+<meta name="description" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>Zookeeper集群搭建配置 | SilentRhythm&#39;s Blog</title>
+
+<link rel="shortcut icon" href="https://faxjiangyi.github.io/favicon.ico?v=1708613223234">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://faxjiangyi.github.io/styles/main.css">
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages//dart.min.js"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script> -->
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-N75PFBTYPH"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', 'G-N75PFBTYPH');
+</script>
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+    
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.1/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({startOnLoad:true});</script> 
+    
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="/">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            SilentRhythm&#39;s Blog
+        </div>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" id="changeNavbar">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+            <div class="nav-item">
+                
+                <a href="/" class="menu gt-a-link">
+                    首页
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/archives" class="menu gt-a-link">
+                    归档
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/tags" class="menu gt-a-link">
+                    标签
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/post/about" class="menu gt-a-link">
+                    关于
+                </a>
+                
+            </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1708613223234"
+                action="/search/">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+<script>
+    /* 移动端导航栏展开/收起切换 */
+    document.getElementById('changeNavbar').onclick = () => {
+        var element = document.getElementById('navbarSupportedContent');
+        if (element.style.display === 'none' || element.style.display === '') {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+</script>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    Zookeeper集群搭建配置
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2023-11-06 ·
+                    </time>
+                    
+                        <a href="https://faxjiangyi.github.io/tag/conf/" class="post-tags">
+                            # 配置
+                        </a>
+                    
+                        <a href="https://faxjiangyi.github.io/tag/distributed/" class="post-tags">
+                            # 分布式
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <p>单机集群测试<br>
+zk版本 3.4.6</p>
+<!-- more -->
+<h1 id="一-下载zk">一、下载zk</h1>
+<p>https://www.apache.org/dyn/closer.lua/zookeeper/zookeeper-3.4.6/apache-zookeeper-3.4.6-bin.tar.gz</p>
+<h1 id="二-解压">二、解压</h1>
+<pre><code class="language-shell">tar -zxvf zookeeper-3.4.6.tar.gz
+</code></pre>
+<h1 id="三-复制3份">三、复制3份</h1>
+<pre><code class="language-shell">cp -r zookeeper-3.4.6 ./zk-cluster/zk1/
+cp -r zookeeper-3.4.6 ./zk-cluster/zk2/
+cp -r zookeeper-3.4.6 ./zk-cluster/zk3/
+</code></pre>
+<h1 id="四-新建3个zk_data目录用于存放zk数据默认存放在zk根目录data中不建议放在zk根目录中">四、新建3个zk_data目录，用于存放zk数据，默认存放在zk根目录/data中，不建议放在zk根目录中</h1>
+<pre><code class="language-shell">cd zk-cluster
+mkdir data_zk1
+mkdir data_zk2
+mkdir data_zk3
+</code></pre>
+<p>至此，文件目录如下</p>
+<pre><code>├── data_zk1
+├── data_zk2
+├── data_zk3
+├── zk1
+├── zk2
+└── zk3
+</code></pre>
+<h1 id="五-在各个zk_data目录下新建名为myid的文件里面放置zk节点命名的id">五、在各个zk_data目录下，新建名为&quot;myid&quot;的文件，里面放置zk节点命名的id</h1>
+<pre><code class="language-shell">echo 1 &gt; zk1/myid
+echo 2 &gt; zk2/myid
+echo 3 &gt; zk3/myid
+</code></pre>
+<p>至此，文件目录如下</p>
+<pre><code>├── data_zk1
+│   └── myid
+├── data_zk2
+│   └── myid
+├── data_zk3
+│   └── myid
+├── zk1
+├── zk2
+└── zk3
+</code></pre>
+<h1 id="六-设置各个zk中的配置文件信息">六、设置各个zk中的配置文件信息</h1>
+<p>./zk1/conf/zoo.cfg</p>
+<pre><code class="language-properties"># The number of milliseconds of each tick
+tickTime=2000
+# The number of ticks that the initial
+# synchronization phase can take
+initLimit=10
+# The number of ticks that can pass between
+# sending a request and getting an acknowledgement
+syncLimit=5
+# the directory where the snapshot is stored.
+# do not use /tmp for storage, /tmp here is just
+# example sakes.
+	## 注意，这里配置每个zk的data文件夹路径
+dataDir=/home/jiangyi/env/zookeeper/zk-cluster/data_zk1
+# the port at which the clients will connect
+	## 注意，这里每个zk的配置文件端口不能一样
+clientPort=2181
+# the maximum number of client connections.
+# increase this if you need to handle more clients
+#maxClientCnxns=60
+#
+# Be sure to read the maintenance section of the
+# administrator guide before turning on autopurge.
+#
+# http://zookeeper.apache.org/doc/current/zookeeperAdmin.html#sc_maintenance
+#
+# The number of snapshots to retain in dataDir
+#autopurge.snapRetainCount=3
+# Purge task interval in hours
+# Set to &quot;0&quot; to disable auto purge feature
+#autopurge.purgeInterval=1
+
+## Metrics Providers
+#
+# https://prometheus.io Metrics Exporter
+#metricsProvider.className=org.apache.zookeeper.metrics.prometheus.PrometheusMetricsProvider
+#metricsProvider.httpPort=7000
+#metricsProvider.exportJvmInfo=true
+	## 注意，server.*对应的是每个zkdata中的myid
+server.1=127.0.0.1:2888:3888
+server.2=127.0.0.1:2889:3889
+server.3=127.0.0.1:2890:3890
+</code></pre>
+<p>./zk2/conf/zoo.cfg</p>
+<pre><code class="language-properties">## 与zk1/conf/zoo.cfg一致,只展示修改部分，省略......
+	## 注意，这里配置每个zk的data文件夹路径
+dataDir=/home/jiangyi/env/zookeeper/zk-cluster/data_zk2
+# the port at which the clients will connect
+	## 注意，这里每个zk的配置文件端口不能一样
+clientPort=2182
+</code></pre>
+<p>./zk3/conf/zoo.cfg</p>
+<pre><code class="language-properties">## 与zk1/conf/zoo.cfg一致,只展示修改部分，省略......
+	## 注意，这里配置每个zk的data文件夹路径
+dataDir=/home/jiangyi/env/zookeeper/zk-cluster/data_zk3
+# the port at which the clients will connect
+	## 注意，这里每个zk的配置文件端口不能一样
+clientPort=2183
+</code></pre>
+<h1 id="七-编写本地集群启动脚本">七、编写本地集群启动脚本</h1>
+<p>./start-cluster.sh</p>
+<pre><code class="language-sh">#!/bin/sh
+
+./zk1/bin/zkServer.sh start
+./zk2/bin/zkServer.sh start
+./zk3/bin/zkServer.sh start
+
+echo &quot;zk-server-local-cluster started!&quot;
+</code></pre>
+<p>./stop-cluster.sh</p>
+<pre><code class="language-sh">#!/bin/sh
+
+./zk1/bin/zkServer.sh stop
+./zk2/bin/zkServer.sh stop
+./zk3/bin/zkServer.sh stop
+
+echo &quot;zk-server-local-cluster stopped!&quot;
+</code></pre>
+<p>./show-cluster-status.sh</p>
+<pre><code class="language-sh">#!/bin/sh
+
+./zk1/bin/zkServer.sh status
+./zk2/bin/zkServer.sh status
+./zk3/bin/zkServer.sh status
+</code></pre>
+<p>脚本设置为可运行</p>
+<pre><code class="language-shell">chmod 777 ./*.sh
+</code></pre>
+<p>至此，当前目录结构</p>
+<pre><code>├── show-cluster-status.sh
+├── start-cluster.sh
+├── stop-cluster.sh
+├── data_zk1
+│   └── myid
+├── data_zk2
+│   └── myid
+├── data_zk3
+│   └── myid
+├── zk1
+├── zk2
+└── zk3
+</code></pre>
+<h1 id="八-运行启动脚本">八、运行启动脚本</h1>
+<p>启动</p>
+<pre><code class="language-shell">./start-cluster.sh
+</code></pre>
+<p>查看状态，出现leader及follower即成功</p>
+<pre><code class="language-shell">./show-cluster-status.sh
+
+####
+/usr/bin/java
+ZooKeeper JMX enabled by default
+Using config: /home/jiangyi/env/zookeeper/zk-cluster/zk1/bin/../conf/zoo.cfg
+Client port found: 2181. Client address: localhost. Client SSL: false.
+Mode: follower
+/usr/bin/java
+ZooKeeper JMX enabled by default
+Using config: /home/jiangyi/env/zookeeper/zk-cluster/zk2/bin/../conf/zoo.cfg
+Client port found: 2182. Client address: localhost. Client SSL: false.
+Mode: leader
+/usr/bin/java
+ZooKeeper JMX enabled by default
+Using config: /home/jiangyi/env/zookeeper/zk-cluster/zk3/bin/../conf/zoo.cfg
+Client port found: 2183. Client address: localhost. Client SSL: false.
+Mode: follower
+
+</code></pre>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://faxjiangyi.github.io/post/helloworld/" class="post-title gt-a-link">
+                    Hello World!
+                </a>
+            </div>
+        
+
+        
+
+        
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">我的幸福，即我与生活搏斗的故事。</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/faxjiangyi" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        <a href="/friends">友情链接</a>
+    </div>
+    <div>
+        Theme <a href="https://github.com/imhanjie/gridea-theme-pure" target="_blank">Pure</a>, Powered by <a
+                href="https://gridea.dev" target="_blank">Gridea</a> | <a href="https://faxjiangyi.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+</div>
+
+<script>
+  hljs.highlightAll()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,251 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+<meta name="description" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>logback集成logstash | SilentRhythm&#39;s Blog</title>
+
+<link rel="shortcut icon" href="https://faxjiangyi.github.io/favicon.ico?v=1708613223234">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://faxjiangyi.github.io/styles/main.css">
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages//dart.min.js"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script> -->
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-N75PFBTYPH"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', 'G-N75PFBTYPH');
+</script>
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+    
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.1/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({startOnLoad:true});</script> 
+    
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="/">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            SilentRhythm&#39;s Blog
+        </div>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" id="changeNavbar">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+            <div class="nav-item">
+                
+                <a href="/" class="menu gt-a-link">
+                    首页
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/archives" class="menu gt-a-link">
+                    归档
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/tags" class="menu gt-a-link">
+                    标签
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/post/about" class="menu gt-a-link">
+                    关于
+                </a>
+                
+            </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1708613223234"
+                action="/search/">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+<script>
+    /* 移动端导航栏展开/收起切换 */
+    document.getElementById('changeNavbar').onclick = () => {
+        var element = document.getElementById('navbarSupportedContent');
+        if (element.style.display === 'none' || element.style.display === '') {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+</script>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    logback集成logstash
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2023-11-07 ·
+                    </time>
+                    
+                        <a href="https://faxjiangyi.github.io/tag/conf/" class="post-tags">
+                            # 配置
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <h1 id="原理及效果">原理及效果</h1>
+<p>​	logstash支持从tcp输入，logback支持logstash appender，日志可以不打到文件直接打到logstash。方便集成ELK，且不挂载docker卷情况下镜像也不会增大。</p>
+<!-- more -->
+<h1 id="步骤">步骤</h1>
+<h2 id="应用-添加maven依赖">应用-添加maven依赖</h2>
+<pre><code class="language-xml">	&lt;dependency&gt;
+		&lt;groupId&gt;net.logstash.logback&lt;/groupId&gt;
+		&lt;artifactId&gt;logstash-logback-encoder&lt;/artifactId&gt;
+		&lt;version&gt;4.11&lt;/version&gt;
+	&lt;/dependency&gt;
+</code></pre>
+<h2 id="应用-logback-springxml添加appender">应用-logback-spring.xml添加appender</h2>
+<pre><code class="language-xml">    &lt;appender name=&quot;logstash&quot; class=&quot;net.logstash.logback.appender.LogstashTcpSocketAppender&quot;&gt;
+        &lt;!--可以访问的logstash日志收集端口--&gt;
+        &lt;destination&gt;127.0.0.1:8888&lt;/destination&gt;
+        &lt;encoder charset=&quot;UTF-8&quot; class=&quot;net.logstash.logback.encoder.LogstashEncoder&quot;/&gt;
+        &lt;encoder class=&quot;net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder&quot;&gt;
+            &lt;providers&gt;
+                &lt;timestamp&gt;
+                    &lt;timeZone&gt;Asia/Shanghai&lt;/timeZone&gt;
+                &lt;/timestamp&gt;
+                &lt;pattern&gt;
+                    &lt;pattern&gt;
+                        {
+                        &quot;time&quot;:&quot;%d{yyyy-MM-dd HH:mm:ss}&quot;,
+                        &quot;level&quot;: &quot;%level&quot;,
+                        &quot;thread&quot;: &quot;%thread&quot;,
+                        &quot;class&quot;: &quot;%c[%L]&quot;,
+                        &quot;message&quot;: &quot;%msg&quot;
+                        }
+                    &lt;/pattern&gt;
+                &lt;/pattern&gt;
+            &lt;/providers&gt;
+        &lt;/encoder&gt;
+    &lt;/appender&gt;
+
+    &lt;!-- 日志输出级别 --&gt;
+    &lt;root level=&quot;INFO&quot;&gt;
+        &lt;appender-ref ref=&quot;logstash&quot; /&gt;
+    &lt;/root&gt;
+</code></pre>
+<h2 id="logstashconf">logstash.conf</h2>
+<pre><code>## 从tcp 8888端口输入
+input {
+    tcp {
+        mode =&gt; &quot;server&quot;
+        port =&gt; 8888
+    }
+}
+filter {
+    json {
+       source =&gt; &quot;message&quot;
+    }
+ }
+## 控制台输出,测试用。也可以打到es
+output {
+    stdout {
+        codec =&gt; rubydebug
+    }
+}
+</code></pre>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://faxjiangyi.github.io/post/yi-zhi-xing-ha-xi-suan-fa/" class="post-title gt-a-link">
+                    一致性哈希算法
+                </a>
+            </div>
+        
+
+        
+
+        
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">我的幸福，即我与生活搏斗的故事。</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/faxjiangyi" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        <a href="/friends">友情链接</a>
+    </div>
+    <div>
+        Theme <a href="https://github.com/imhanjie/gridea-theme-pure" target="_blank">Pure</a>, Powered by <a
+                href="https://gridea.dev" target="_blank">Gridea</a> | <a href="https://faxjiangyi.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+</div>
+
+<script>
+  hljs.highlightAll()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

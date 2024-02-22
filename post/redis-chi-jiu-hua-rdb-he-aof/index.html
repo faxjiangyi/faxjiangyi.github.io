@@ -1,0 +1,252 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+<meta name="description" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>Redis持久化 RDB和AOF | SilentRhythm&#39;s Blog</title>
+
+<link rel="shortcut icon" href="https://faxjiangyi.github.io/favicon.ico?v=1708613223234">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://faxjiangyi.github.io/styles/main.css">
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages//dart.min.js"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script> -->
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-N75PFBTYPH"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', 'G-N75PFBTYPH');
+</script>
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+    
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.1/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({startOnLoad:true});</script> 
+    
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="/">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            SilentRhythm&#39;s Blog
+        </div>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" id="changeNavbar">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+            <div class="nav-item">
+                
+                <a href="/" class="menu gt-a-link">
+                    首页
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/archives" class="menu gt-a-link">
+                    归档
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/tags" class="menu gt-a-link">
+                    标签
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/post/about" class="menu gt-a-link">
+                    关于
+                </a>
+                
+            </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1708613223234"
+                action="/search/">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+<script>
+    /* 移动端导航栏展开/收起切换 */
+    document.getElementById('changeNavbar').onclick = () => {
+        var element = document.getElementById('navbarSupportedContent');
+        if (element.style.display === 'none' || element.style.display === '') {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+</script>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    Redis持久化 RDB和AOF
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2023-11-07 ·
+                    </time>
+                    
+                        <a href="https://faxjiangyi.github.io/tag/redis/" class="post-tags">
+                            # Redis
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <p>[ 参考文献 ] : https://juejin.cn/post/6844903939339452430</p>
+<h1 id="rdb快照持久化">RDB快照持久化</h1>
+<p>​	RDB持久化会生成RDB文件，该文件是一个压缩过的二进制文件，可以通过该文件还原快照时的数据库状态，即生成该RDB文件时的服务器数据。</p>
+<p>​	RDB文件默认为当前工作目录下的<code>dump.rdb</code></p>
+<h2 id="触发方法">触发方法</h2>
+<ul>
+<li>执行<code>save</code>和<code>bgsave</code>命令：save会阻塞redis服务器进程，bgsave会fork一个子进程（见图），服务器进程会继续处理命令请求；</li>
+<li>配置文件设置<code>save &lt;seconds&gt; &lt;changes&gt;</code>规则，自动间隔性执行<code>bgsave</code>命令：seconds秒内，至少有changes次变化，就会自动触发<code>bgsave</code>命令；</li>
+<li>主从复制时，从库全量复制同步主库数据，主库会执行<code>bgsave；</code></li>
+<li>执行<code>flushall</code>命令清空服务器数据；</li>
+<li>执行<code>shutdown</code>命令关闭Redis时，会执行<code>save</code>命令。</li>
+</ul>
+<figure data-type="image" tabindex="1"><img src="https://p1-jj.byteimg.com/tos-cn-i-t2oaga2asx/gold-user-assets/2019/9/10/16d1a887a8ba96ea~tplv-t2oaga2asx-jj-mark:3024:0:0:0:q75.awebp" alt="img" loading="lazy"></figure>
+<h1 id="aof持久化">AOF持久化</h1>
+<p>​	AOF（Append Only File）持久化功能，AOF持久化会把被执行的写命令（Redis的序列化协议RESP）写到AOF文件的末尾，记录数据的变化。</p>
+<p>​	默认情况下，Redis是没有开启AOF的，开启后，每执行一条更改Redis数据的命令，都会把该命令追加到AOF文件中，这是会降低Redis的性能，但大部分情况下这个影响是能够接受的，另外SSD可以提高AOF的性能。</p>
+<h2 id="文件写入write和文件同步fsync">文件写入(write)和文件同步(fsync)</h2>
+<p>操作系统的write命令会缓冲限流，fsync会强制写硬盘但是效率较低，Redis提供了以下fsync策略：</p>
+<ul>
+<li><code>appendfsync always</code>：每个写命令同步写入磁盘</li>
+<li><code>appendfsync everysec</code>（默认值）：将<code>aof_buf</code>缓存区的内容写入AOF文件，每秒同步一次，该操作由一个线程专门负责</li>
+<li><code>appendfsync no</code>：由操作系统来决定写入文件</li>
+</ul>
+<h2 id="aof重写">AOF重写</h2>
+<p>​	AOF文件中通常会有一些冗余命令，如：过期数据的命令、无效的命令（重复设置、删除）、多个命令可合并为一个命令（批处理命令）。故AOF提供了压缩空间的重写命令（流程见下图），有以下触发方式：</p>
+<ul>
+<li>
+<p>手动触发：<code>bgrewriteaof</code>，与<code>bgsave</code>触发快照时类似的，都是<code>fork</code>一个子进程执行；</p>
+</li>
+<li>
+<p>自动触发会：根据以下参数配置来自动执行<code>bgrewriteaof</code>命令：</p>
+</li>
+</ul>
+<pre><code class="language-shell">   # 表示当AOF文件的体积大于64MB，且AOF文件的体积比上一次重写后的体积大了100%时，会执行`bgrewriteaof`命令
+   auto-aof-rewrite-percentage 100
+   auto-aof-rewrite-min-size 64mb
+</code></pre>
+<figure data-type="image" tabindex="2"><img src="https://p1-jj.byteimg.com/tos-cn-i-t2oaga2asx/gold-user-assets/2019/9/10/16d1a887a85881e3~tplv-t2oaga2asx-jj-mark:3024:0:0:0:q75.awebp" alt="img" loading="lazy"></figure>
+<h1 id="rdb和aof优缺点">RDB和AOF优缺点</h1>
+<h2 id="rdb">RDB</h2>
+<h3 id="优点">优点</h3>
+<ul>
+<li>保存着某个时间点的完整数据集，适合做数据的备份，灾难恢复；</li>
+<li>可以最大化Redis的性能，只需fork一个子进程来完成RDB文件的创建，父进程不需要做IO操作；</li>
+<li>与AOF相比，恢复大数据集的时候会更快；</li>
+</ul>
+<h3 id="缺点">缺点</h3>
+<ul>
+<li>数据安全性不如AOF，根据配置可能要几分钟才快照一次，如果服务器宕机，就可能丢失几分钟的数据；</li>
+<li>Redis数据集较大时，fork的子进程要完成快照会比较耗CPU、耗时；</li>
+</ul>
+<h2 id="aof">AOF</h2>
+<h3 id="优点-2">优点</h3>
+<ul>
+<li>数据更完整，秒级数据丢失（取决fsync策略，如果是everysec，最多丢失1秒的数据）；</li>
+<li>AOF文件是一个只进行追加的日志文件，且写入操作是以Redis协议的格式保存的，内容可读，适合误删紧急恢复；</li>
+</ul>
+<h3 id="缺点-2">缺点</h3>
+<ul>
+<li>对于相同的数据集，AOF文件的体积要大于RDB文件，数据恢复也会比较慢；</li>
+<li>根据所使用的 fsync 策略，AOF 的速度可能会慢于 RDB。 不过在一般情况下，每秒 fsync 的性能依然非常高。</li>
+</ul>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://faxjiangyi.github.io/post/rabbitmq-yan-shi-dui-lie/" class="post-title gt-a-link">
+                    RabbitMQ延时队列
+                </a>
+            </div>
+        
+
+        
+
+        
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">我的幸福，即我与生活搏斗的故事。</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/faxjiangyi" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        <a href="/friends">友情链接</a>
+    </div>
+    <div>
+        Theme <a href="https://github.com/imhanjie/gridea-theme-pure" target="_blank">Pure</a>, Powered by <a
+                href="https://gridea.dev" target="_blank">Gridea</a> | <a href="https://faxjiangyi.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+</div>
+
+<script>
+  hljs.highlightAll()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

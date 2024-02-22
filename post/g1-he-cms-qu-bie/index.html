@@ -1,0 +1,266 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+<meta name="description" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>G1和CMS区别 | SilentRhythm&#39;s Blog</title>
+
+<link rel="shortcut icon" href="https://faxjiangyi.github.io/favicon.ico?v=1708613223234">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://faxjiangyi.github.io/styles/main.css">
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages//dart.min.js"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script> -->
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-N75PFBTYPH"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', 'G-N75PFBTYPH');
+</script>
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+    
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.1/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({startOnLoad:true});</script> 
+    
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="/">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            SilentRhythm&#39;s Blog
+        </div>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" id="changeNavbar">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+            <div class="nav-item">
+                
+                <a href="/" class="menu gt-a-link">
+                    首页
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/archives" class="menu gt-a-link">
+                    归档
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/tags" class="menu gt-a-link">
+                    标签
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/post/about" class="menu gt-a-link">
+                    关于
+                </a>
+                
+            </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1708613223234"
+                action="/search/">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+<script>
+    /* 移动端导航栏展开/收起切换 */
+    document.getElementById('changeNavbar').onclick = () => {
+        var element = document.getElementById('navbarSupportedContent');
+        if (element.style.display === 'none' || element.style.display === '') {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+</script>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    G1和CMS区别
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2023-11-07 ·
+                    </time>
+                    
+                        <a href="https://faxjiangyi.github.io/tag/jvm/" class="post-tags">
+                            # JVM
+                        </a>
+                    
+                        <a href="https://faxjiangyi.github.io/tag/java/" class="post-tags">
+                            # Java
+                        </a>
+                    
+                </div>
+                <div class="post-content">
+                    <h1 id="cms">CMS</h1>
+<p>​	CMS是基于并发的 &quot;标记-清理&quot; 算法实现的老年代收集器，以获取最短回收停顿时间为目标。</p>
+<h2 id="cms回收垃圾的4个阶段">CMS回收垃圾的4个阶段</h2>
+<ul>
+<li>
+<p><strong>初始标记（Stop The World）</strong>：独占CPU，仅标记GC-Roots能直接关联的对象；</p>
+</li>
+<li>
+<p><strong>并发标记</strong>：可以和用户线程并行执行，标记所有可达对象；</p>
+</li>
+<li>
+<p><strong>重新标记（Stop The World）</strong>：独占CPU，对并发标记阶段用户线程运行产生的垃圾对象进行标记修正；</p>
+</li>
+<li>
+<p><strong>并发清理</strong>：可以和用户线程并行执行，清理垃圾。</p>
+</li>
+</ul>
+<h2 id="cms优缺点">CMS优缺点</h2>
+<h3 id="优点">优点</h3>
+<ul>
+<li>并发收集，低停顿。</li>
+</ul>
+<h3 id="缺点">缺点</h3>
+<ul>
+<li>内存空间碎片：“标记-清理”算法会产生大量的空间碎片，会出现老年代空间很大但无法找到连续空间来分配当前对象，提前触发一次FullGC；</li>
+<li>对CPU敏感：在并发阶段虽然不会导致用户线程停顿，但是会因为占用了一部分线程使应用程序变慢，适用于老年代并不频繁GC的场景；</li>
+<li>无法处理浮动垃圾：在最后一步并发清理的过程中，用户线程执行也会产生垃圾，但是这部分垃圾是在标记之后，所以只有等到下一次GC的时候清理掉，这部分垃圾叫浮动垃圾。</li>
+</ul>
+<h1 id="g1">G1</h1>
+<p>​	JDK9以后的默认GC，基于&quot;标记-整理&quot;算法，将内存进行Region分区，不区分新生代老生代，除了追求低停顿外，还能建立可预测的停顿时间 。</p>
+<h2 id="g1回收垃圾的4个阶段">G1回收垃圾的4个阶段</h2>
+<ul>
+<li>
+<p><strong>初始标记（Stop the World）</strong>：标记GC Roots 可以直接关联的对象，该阶段需要CPU独占 ，但是耗时短；</p>
+</li>
+<li>
+<p><strong>并发标记</strong>：从GC Roots开始堆中对象进行可达性分析，寻找存活的对象，可以与其他程序并发执行，耗时较长；</p>
+</li>
+<li>
+<p><strong>最终标记（Stop the World）</strong>：并发标记期间用户程序会导致标记记录产生变动（好比一个阿姨一边清理垃圾，另一个人一边扔垃圾）虚拟机会将这段时间的变化记录在Remembered Set Logs 中。最终标记阶段会向Remembered Set合并并发标记阶段的变化。这个阶段需要 Stop the World ，也可以并发执行；</p>
+</li>
+<li>
+<p><strong>筛选回收（Stop the World）</strong>：对每个Region的回收成本进行排序，根据用户所期望的GC停顿时间来制定回收计划。Sun公司透露这个阶段其实也可以做到并发，但考虑到停顿线程将大幅度提高收集效率，所以选择停顿。</p>
+</li>
+</ul>
+<h2 id="g1优缺点">G1优缺点</h2>
+<h3 id="优点-2">优点</h3>
+<ul>
+<li>可以设定停顿时间的目标，相比于CMS，G1未必能做到CMS在最好情况下的延时停顿，但是最差情况要好很多；</li>
+<li>避免内存碎片：“标记-整理”算法的好处，尤其是当 Java 堆非常大的时候，G1 的优势更加明显。</li>
+</ul>
+<h3 id="缺点-2">缺点</h3>
+<ul>
+<li>G1 需要Remembered Set (卡表)来记录引用关系，这种数据结构占用大量内存，可能达到整个堆内存容量的 20% 甚至更多。</li>
+</ul>
+<h1 id="g1和cms的区别">G1和CMS的区别</h1>
+<ul>
+<li>G1从整体上来看是 标记-整理 算法，但从局部（两个Region之间）是标记-复制算法。而CMS是 标记-清除算法。G1不会产生内存碎片，而CMS会产生内存碎片；</li>
+<li>CMS使用了 写后屏障来维护卡表，而G1不仅使用了写后屏障来维护卡表，还是用了 写前屏障来跟踪并发时的指针变化情况（为了实现原始快照）；</li>
+<li>CMS对Java堆内存使用的是传统的新生代和老年代划分方法，而G1使用的全新的Region划分方法；</li>
+<li>CMS收集器只收集老年代，可以配合新生代的Serial和ParNew收集器一起使用；G1收集器收集范围是老年代和新生代，不需要结合其他收集器；</li>
+<li>CMS使用 增量更新解决并发标记下出现的错误标记问题，而G1使用原始快照解决；</li>
+<li>按照《深入理解Java虚拟机》作者说法，CMS 在小内存应用上的表现要优于 G1，而大内存应用上 G1 更有优势，大小内存的界限是6~8GB。</li>
+</ul>
+<h2 id="什么情况下应该考虑使用g1">什么情况下应该考虑使用G1</h2>
+<p>官方文档：</p>
+<ul>
+<li>实时数据占用超过一半的堆空间；</li>
+<li>对象分配或者晋升的速度变化大；</li>
+<li>希望消除长时间的GC停顿（超过0.5-1秒）；</li>
+<li>内存大于8GB。</li>
+</ul>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://faxjiangyi.github.io/post/docker-de-wang-luo-mo-shi/" class="post-title gt-a-link">
+                    Docker的网络模式
+                </a>
+            </div>
+        
+
+        
+
+        
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">我的幸福，即我与生活搏斗的故事。</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/faxjiangyi" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        <a href="/friends">友情链接</a>
+    </div>
+    <div>
+        Theme <a href="https://github.com/imhanjie/gridea-theme-pure" target="_blank">Pure</a>, Powered by <a
+                href="https://gridea.dev" target="_blank">Gridea</a> | <a href="https://faxjiangyi.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+</div>
+
+<script>
+  hljs.highlightAll()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

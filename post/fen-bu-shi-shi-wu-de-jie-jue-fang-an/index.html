@@ -1,0 +1,412 @@
+<html>
+<head>
+    <meta charset="utf-8" />
+<meta name="description" content="" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<title>分布式事务的解决方案 | SilentRhythm&#39;s Blog</title>
+
+<link rel="shortcut icon" href="https://faxjiangyi.github.io/favicon.ico?v=1708613223234">
+
+<link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://faxjiangyi.github.io/styles/main.css">
+<!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/css/bootstrap.min.css"> -->
+
+<script src="https://cdn.jsdelivr.net/npm/@highlightjs/cdn-assets/highlight.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages/dockerfile.min.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/highlight.js/9.12.0/languages//dart.min.js"></script>
+
+<!-- <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0/moment.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.slim.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script> -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.0/dist/js/bootstrap.min.js"></script> -->
+<!-- DEMO JS -->
+<!--<script src="media/scripts/index.js"></script>-->
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-N75PFBTYPH"></script>
+<script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+        dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+    gtag('config', 'G-N75PFBTYPH');
+</script>
+
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.12.0/dist/katex.css">
+    
+        <script src="https://cdn.jsdelivr.net/npm/mermaid@9.1.1/dist/mermaid.min.js"></script>
+        <script>mermaid.initialize({startOnLoad:true});</script> 
+    
+</head>
+<body>
+<div class="main gt-bg-theme-color-first">
+    <nav class="navbar navbar-expand-lg">
+    <a class="navbar-brand" href="/">
+        <img class="user-avatar" src="/images/avatar.png" alt="头像">
+        <div class="site-name gt-c-content-color-first">
+            SilentRhythm&#39;s Blog
+        </div>
+    </a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation" id="changeNavbar">
+        <i class="fas fa-bars gt-c-content-color-first" style="font-size: 18px"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="navbar-nav mr-auto" style="text-align: center">
+            
+            <div class="nav-item">
+                
+                <a href="/" class="menu gt-a-link">
+                    首页
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/archives" class="menu gt-a-link">
+                    归档
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/tags" class="menu gt-a-link">
+                    标签
+                </a>
+                
+            </div>
+            
+            <div class="nav-item">
+                
+                <a href="/post/about" class="menu gt-a-link">
+                    关于
+                </a>
+                
+            </div>
+            
+        </div>
+        <div style="text-align: center">
+            <form id="gridea-search-form" style="position: relative" data-update="1708613223234"
+                action="/search/">
+                <input class="search-input" autocomplete="off" spellcheck="false" name="q" placeholder="搜索文章" />
+                <i class="fas fa-search gt-c-content-color-first" style="position: absolute; top: 9px; left: 10px;"></i>
+            </form>
+        </div>
+    </div>
+</nav>
+<script>
+    /* 移动端导航栏展开/收起切换 */
+    document.getElementById('changeNavbar').onclick = () => {
+        var element = document.getElementById('navbarSupportedContent');
+        if (element.style.display === 'none' || element.style.display === '') {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+</script>
+
+    <div class="post-container">
+        <div class="post-detail gt-bg-theme-color-second">
+            <article class="gt-post-content">
+                <h2 class="post-title">
+                    分布式事务的解决方案
+                </h2>
+                <div class="post-info">
+                    <time class="post-time gt-c-content-color-first">
+                        · 2023-11-10 ·
+                    </time>
+                    
+                </div>
+                <div class="post-content">
+                    <p>简单介绍XA 2PC/3PC, 消息驱动, TCC, SAGA</p>
+<!-- more -->
+<h1 id="分布式cap定理">分布式CAP定理</h1>
+<p>一个分布式的系统中，涉及共享数据问题时，以下三个特性最多只能同时满足其中两个：</p>
+<ul>
+<li><strong>一致性</strong>（<strong>C</strong>onsistency）：代表数据在任何时刻、任何分布式节点中所看到的都是符合预期的。。</li>
+<li><strong>可用性</strong>（<strong>A</strong>vailability）：代表系统不间断地提供服务的能力，理解可用性要先理解与其密切相关两个指标：
+<ul>
+<li>可靠性（Reliability）：使用平均无故障时间（Mean Time Between Failure，MTBF）来度量；</li>
+<li>可维护性（Serviceability）：使用平均可修复时间（Mean Time To Repair，MTTR）来度量。</li>
+<li>可用性衡量系统可以正常使用的时间与总时间之比，其表征为：A=MTBF/（MTBF+MTTR），如 99.9999%可用，即代表平均年故障修复时间为 32 秒。</li>
+</ul>
+</li>
+<li><strong>分区容忍性</strong>（<strong>P</strong>artition Tolerance）：代表分布式环境中部分节点因网络原因而彼此失联后，即与其他节点形成“网络分区”时，系统仍能正确地提供服务的能力。</li>
+</ul>
+<p>由于 CAP 定理已有严格的证明，本节不去探讨为何 CAP 不可兼得，而是直接分析如果舍弃 C、A、P 时所带来的不同影响：</p>
+<ul>
+<li><strong>放弃分区容忍性</strong>（CA without P）：意味着我们将假设节点之间通信永远是可靠的。永远可靠的通信在分布式系统中必定不成立的，只要用到网络来共享数据，分区现象就会始终存在，所以P在分布式系统中不可能被放弃。举例：假如一个分布式系统，3个节点宕机了1个，其他2个节点也不可用，那这个分布式系统与单机有区别吗，还有分布式的意义吗。</li>
+<li><strong>放弃可用性</strong>（CP without A）：意味着我们将假设一旦网络发生分区，节点之间的信息同步时间可以无限制地延长。在现实中，选择放弃可用性的 CP 系统情况一般用于对数据质量要求很高的场合中，以 HBase 集群为例，假如某个 RegionServer 宕机了，这个 RegionServer 持有的所有键值范围都将离线，直到数据恢复过程完成为止，这个过程要消耗的时间是无法预先估计的。</li>
+<li><strong>放弃一致性</strong>（AP without C）：意味着我们将假设一旦发生分区，节点之间所提供的数据可能不一致。选择放弃一致性的 AP 系统目前是设计分布式系统的<strong>主流选择</strong>，因为 P 是分布式网络的天然属性，你再不想要也无法丢弃；而 A 通常是建设分布式的目的，如果可用性随着节点数量增加反而降低的话，很多分布式系统可能就失去了存在的价值，除非银行、证券这些涉及金钱交易的服务，宁可中断也不能出错，否则多数系统是不能容忍节点越多可用性反而越低的。</li>
+</ul>
+<h1 id="cap定理与分布式事务的关系">CAP定理与分布式事务的关系</h1>
+<p>​	读到这里，不知道你是否对“选择放弃一致性的 AP 系统目前是设计分布式系统的主流选择”这个结论感到一丝无奈，本章讨论的话题“事务”原本的目的就是获得“一致性”，而在分布式环境中，“一致性”却不得不成为通常被牺牲、被放弃的那一项属性。</p>
+<p>​	为此，人们又重新给一致性下了定义，将前面我们在 CAP、ACID 中讨论的一致性称为“强一致性”（Strong Consistency），有时也称为“线性一致性”（Linearizability），而把牺牲了 C 的 AP 系统又要尽可能获得正确的结果的行为称为追求“弱一致性”。在弱一致性里，人们又总结出了一种稍微强一点的特例，被称为“最终一致性”（Eventual Consistency），它是指：如果数据在一段时间之内没有被另外的操作所更改，那它最终将会达到与强一致性过程相同的结果。</p>
+<p>​	由于一致性的定义变动，“事务”一词的含义其实也同样被拓展了，人们把使用 ACID 的事务称为“刚性事务”，而把追求最终一致性的常见做法统称为“柔性事务”。</p>
+<h1 id="刚性事务cp">刚性事务（CP）</h1>
+<p>​	刚性事务是一种在分布式环境中仍追求强一致性的事务处理方案，对于多节点而且互相调用彼此服务的场合（典型的就是现在的微服务系统）是极不合适的，今天它几乎只实际应用于<strong>单服务多数据源</strong>的场合中。</p>
+<p>​	1991 年，为了解决分布式事务的一致性问题，X/Open组织提出了一套名为X/Open XA（eXtended Architecture 的缩写）的处理事务架构，其核心内容是定义了全局的事务管理器（Transaction Manager，用于协调全局事务）和局部的资源管理器（Resource Manager，用于驱动本地事务）之间的通信接口。XA 接口是双向的，能在一个事务管理器和多个资源管理器（Resource Manager）之间形成通信桥梁，通过协调多个数据源的一致动作，实现全局事务的统一提交或者统一回滚。</p>
+<p>在单服务中，如果要在一个事务中操作多个数据源，常用写法如下：</p>
+<pre><code class="language-java">public void buyBook(PaymentBill bill) {
+    // 开启事务
+    userTransaction.begin();
+    warehouseTransaction.begin();
+    businessTransaction.begin();
+	try {
+        
+        // 用户扣钱
+        userAccountService.pay(bill.getMoney());
+        // 库存扣减
+        warehouseService.deliver(bill.getItems());
+        // 商户入账
+        businessAccountService.receipt(bill.getMoney());
+        
+        // 提交事务
+        userTransaction.commit();
+        warehouseTransaction.commit();
+        businessTransaction.commit();
+	} catch(Exception e) {
+        // 回滚事务
+        userTransaction.rollback();
+        warehouseTransaction.rollback();
+        businessTransaction.rollback();
+	}
+}
+</code></pre>
+<p>从代码上可看出，程序的目的是要做三次事务提交，但实际上代码并不能这样写，试想一下，如果在<code>businessTransaction.commit()</code>中出现错误，代码转到<code>catch</code>块中执行，此时<code>userTransaction</code>和<code>warehouseTransaction</code>已经完成提交，再去调用<code>rollback()</code>方法已经无济于事，这将导致一部分数据被提交，另一部分被回滚，整个事务的一致性也就无法保证了。</p>
+<h2 id="xa-2pc">XA 2PC</h2>
+<p>为了解决上述问题，XA 将事务提交拆分成为两阶段过程：</p>
+<ul>
+<li><strong>准备阶段</strong>：又叫作投票阶段，在这一阶段，协调者询问事务的所有参与者是否准备好提交，参与者如果已经准备好提交则回复 Prepared，否则回复 Non-Prepared。这里所说的准备操作跟人类语言中通常理解的准备并不相同，对于数据库来说，准备操作是在重做日志中记录全部事务提交操作所要做的内容，它与本地事务中真正提交的区别只是暂不写入最后一条 Commit Record 而已，这意味着在做完数据持久化后并不立即释放隔离性，即仍继续持有锁，维持数据对其他非事务内观察者的隔离状态。</li>
+<li><strong>提交阶段</strong>：又叫作执行阶段，协调者如果在上一阶段收到所有事务参与者回复的 Prepared 消息，则先自己在本地持久化事务状态为 Commit，在此操作完成后向所有参与者发送 Commit 指令，所有参与者立即执行提交操作；否则，任意一个参与者回复了 Non-Prepared 消息，或任意一个参与者超时未回复，协调者将自己的事务状态持久化为 Abort 之后，向所有参与者发送 Abort 指令，参与者立即执行回滚操作。对于数据库来说，这个阶段的提交操作应是很轻量的，仅仅是持久化一条 Commit Record 而已，通常能够快速完成，只有收到 Abort 指令时，才需要根据回滚日志清理已提交的数据，这可能是相对重负载的操作。</li>
+</ul>
+<p>以上这两个过程被称为“两段式提交”（2 Phase Commit，2PC）协议，而它能够成功保证一致性还需要一些其他前提条件。</p>
+<ul>
+<li><strong>必须假设网络在提交阶段的短时间内是可靠的</strong>，即提交阶段不会丢失消息。同时也假设网络通信在全过程都不会出现误差，即可以丢失消息，但不会传递错误的消息。两段式提交中投票阶段失败了可以补救（回滚），而提交阶段失败了无法补救（不再改变提交或回滚的结果，只能等崩溃的节点重新恢复），因而此阶段耗时应尽可能短，这也是为了尽量控制网络风险的考虑。</li>
+<li>必须假设因为网络分区、机器崩溃或者其他原因而导致失联的节点最终能够恢复，不会永久性地处于失联状态。由于在准备阶段已经写入了完整的重做日志，所以当失联机器一旦恢复，就能够从日志中找出已准备妥当但并未提交的事务数据，并向协调者查询该事务的状态，确定下一步应该进行提交还是回滚操作。</li>
+</ul>
+<pre class="mermaid">
+sequenceDiagram
+协调者 ->> 参与者: 要求所有参与者进入准备阶段
+参与者 -->> 协调者 : 已进入准备阶段
+协调者 ->> 参与者: 要求所有参与者进入提交阶段
+参与者 -->> 协调者 : 已进入提交阶段
+
+opt 失败或超时
+协调者 ->> 参与者: 要求所有参与者回滚事务
+参与者 -->> 协调者 : 已回滚事务
+end
+</pre>
+<p>两段式提交原理简单，并不难实现，但有几个非常显著的缺点：</p>
+<ul>
+<li><strong>单点问题</strong>：协调者在两段提交中具有举足轻重的作用，协调者等待参与者回复时可以有超时机制，允许参与者宕机，但参与者等待协调者指令时无法做超时处理。一旦宕机的不是其中某个参与者，而是协调者的话，所有参与者都会受到影响。如果协调者一直没有恢复，没有正常发送 Commit 或者 Rollback 的指令，那所有参与者都必须一直等待。</li>
+<li><strong>性能问题</strong>：两段提交过程中，所有参与者相当于被绑定成为一个统一调度的整体，期间要经过两次远程服务调用，三次数据持久化（准备阶段写重做日志，协调者做状态持久化，提交阶段在日志写入 Commit Record），整个过程将持续到参与者集群中最慢的那一个处理操作结束为止，这决定了两段式提交的性能通常都较差。</li>
+<li><strong>一致性风险</strong>：前面已经提到，两段式提交的成立是有前提条件的，当网络稳定性和宕机恢复能力的假设不成立时，仍可能出现一致性问题。
+<ul>
+<li>宕机恢复能力：1985 年 Fischer、Lynch、Paterson 提出了“<a href="https://en.wikipedia.org/wiki/Consensus_(computer_science)#Solvability_results_for_some_agreement_problems">FLP 不可能原理</a>”，证明了如果宕机最后不能恢复，那就不存在任何一种分布式协议可以正确地达成一致性结果。</li>
+<li>网络稳定性：尽管提交阶段时间很短，如果处理过程中网络忽然被断开，无法再通过网络向所有参与者发出 Commit 指令的话，就会导致部分数据（协调者的）已提交，但部分数据（参与者的）既未提交，也没有办法回滚，产生了数据不一致的问题。</li>
+</ul>
+</li>
+</ul>
+<h2 id="xa-3pc">XA 3PC</h2>
+<p>​	为了缓解两段式提交协议的一部分缺陷，具体地说是协调者的单点问题和准备阶段的性能问题，后续又发展出了三段式提交（3 Phase Commit，3PC）协议。三段式提交<strong>把原本的两段式提交的准备阶段再细分为两个阶段</strong>，分别称为 CanCommit、PreCommit，把提交阶段改称为 DoCommit 阶段。</p>
+<p>​	其中，新增的 CanCommit 是一个询问阶段，协调者让每个参与的数据库根据自身状态，评估该事务是否有可能顺利完成。将准备阶段一分为二的理由是这个阶段是重负载的操作，一旦协调者发出开始准备的消息，每个参与者都将马上开始写重做日志，它们所涉及的数据资源即被锁住，如果此时某一个参与者宣告无法完成提交，相当于大家都白做了一轮无用功。</p>
+<p>​	所以，增加一轮询问阶段，如果都得到了正面的响应，那事务能够成功提交的把握就比较大了，这也意味着因某个参与者提交时发生崩溃而导致大家全部回滚的风险相对变小。因此，<strong>在事务需要回滚的场景中，三段式的性能通常是要比两段式好很多，但在事务能够正常提交的场景中，两者的性能都依然很差</strong>，甚至三段式因为多了一次询问，还要稍微更差一些。</p>
+<p>同样也是由于事务失败回滚概率变小的原因，在三段式提交中，如果在 PreCommit 阶段之后发生了协调者宕机，即参与者没有能等到 DoCommit 的消息的话，默认的操作策略将是提交事务而不是回滚事务或者持续等待，这就相当于避免了协调者单点问题的风险。三段式提交的操作时序图如图所示。</p>
+<pre class="mermaid">
+sequenceDiagram
+协调者 ->> 参与者: 询问阶段：是否有把握完成事务
+参与者 -->> 协调者 : 是
+
+协调者 ->> 参与者: 准备阶段：写入日志，锁定资源
+参与者 -->> 协调者 : 确认（Ack）
+
+协调者 ->> 参与者: 提交阶段：提交事务
+参与者 -->> 协调者 : 已提交
+
+opt 失败
+协调者 ->> 参与者: 要求回滚事务
+参与者 -->> 协调者 : 已回滚事务
+end
+
+opt 超时
+参与者 ->> 参与者: 提交事务
+end
+</pre>
+<h1 id="柔性事务ap">柔性事务（AP）</h1>
+<p>柔性事务追求的是最终一致性，主要通过 消息队列，重试，补偿行为 实现。</p>
+<p>按上述刚性事务中的例子继续拓展，有以下几种常见方案。</p>
+<h2 id="可靠消息队列">可靠消息队列</h2>
+<p>​	它在计算机的其他领域中已被频繁使用，也有了专门的名字叫作“最大努力交付”（Best-Effort Delivery）。</p>
+<p>​	而可靠事件队列还有一种更普通的形式，被称为“最大努力一次提交”（Best-Effort 1PC），指的就是<strong>将最有可能出错的业务以本地事务的方式完成</strong>后，采用不断重试的方式（不限于消息系统）来促使同一个分布式事务中的其他关联业务全部完成。</p>
+<pre class="mermaid">
+sequenceDiagram
+	Fenix's Bookstore ->>+ 账号服务: 启动事务
+	账号服务 ->> 账号服务: 扣减货款
+	账号服务 ->>- 消息队列: 提交本地事务，发出消息
+	loop 循环直至成功
+		消息队列 ->> 仓库服务: 扣减库存
+		alt 扣减成功
+        	仓库服务 -->> 消息队列: 成功
+		else 业务或网络异常
+        	仓库服务 -->> 消息队列: 失败
+		end
+	end
+	消息队列 -->> 账号服务: 更新消息表，仓库服务完成
+	loop 循环直至成功
+		消息队列 ->> 商家服务: 货款收款
+		alt 收款成功
+        	商家服务 -->> 消息队列: 成功
+		else 业务或网络异常
+        	商家服务 -->> 消息队列: 失败
+		end
+	end
+	消息队列 -->> 账号服务: 更新消息表，商家服务完成
+</pre>
+<h2 id="tcc-事务">TCC 事务</h2>
+<p>​	TCC是“Try-Confirm-Cancel”三个单词的缩写。</p>
+<p>​	前面介绍的可靠消息队列虽然能保证最终的结果是相对可靠的，过程也足够简单（相对于 TCC 来说），但整个过程完全没有任何隔离性可言，有一些业务中隔离性是无关紧要的，但有一些业务中缺乏隔离性就会带来许多麻烦。</p>
+<p>​	举例而言，乏隔离性会带来的一个显而易见的问题便是“超售”：完全有可能两个客户在短时间内都成功购买了同一件商品，而且他们各自购买的数量都不超过目前的库存，但他们购买的数量之和却超过了库存。如果业务需要隔离，那架构师通常就应该重点考虑 TCC 方案，该方案天生适合用于需要强隔离性的分布式事务中。</p>
+<p>​	在具体实现上，TCC 较为烦琐，它是一种业务侵入式较强的事务方案，要求业务处理过程必须拆分为“预留业务资源”和“确认/释放消费资源”两个子过程。如同 TCC 的名字所示，它分为以下三个阶段，时序图如下图所示：</p>
+<ul>
+<li><strong>Try</strong>：尝试执行阶段，完成所有业务可执行性的检查（保障一致性），并且预留好全部需用到的业务资源（保障隔离性）。</li>
+<li><strong>Confirm</strong>：确认执行阶段，不进行任何业务检查，直接使用 Try 阶段准备的资源来完成业务处理。Confirm 阶段可能会重复执行，因此本阶段所执行的操作需要具备幂等性。</li>
+<li><strong>Cancel</strong>：取消执行阶段，释放 Try 阶段预留的业务资源。Cancel 阶段可能会重复执行，也需要满足幂等性。</li>
+</ul>
+<pre class="mermaid">
+sequenceDiagram
+	Fenix's Bookstore ->> 账号服务: 业务检查，冻结货款
+	alt 成功
+		账号服务 -->> Fenix's Bookstore: 记录进入Confirm阶段
+	else 业务或网络异常
+		账号服务 -->> Fenix's Bookstore: 记录进入Cancel阶段
+	end
+	Fenix's Bookstore ->> 仓库服务: 业务检查，冻结商品
+	alt 成功
+		仓库服务 -->> Fenix's Bookstore: 记录进入Confirm阶段
+	else 业务或网络异常
+		仓库服务 -->> Fenix's Bookstore: 记录进入Cancel阶段
+	end
+	Fenix's Bookstore ->> 商家服务: 业务检查
+	alt 成功
+		商家服务 -->> Fenix's Bookstore: 记录进入Confirm阶段
+	else 业务或网络异常
+		商家服务 -->> Fenix's Bookstore: 记录进入Cancel阶段
+	end
+    opt 全部记录均返回Confirm阶段
+		loop 循环直至全部成功
+        	Fenix's Bookstore->>账号服务: 完成业务，扣减冻结的货款
+        	Fenix's Bookstore->>仓库服务: 完成业务，扣减冻结的货物
+        	Fenix's Bookstore->>商家服务: 完成业务，货款收款
+		end
+    end
+    opt 任意服务超时或返回Cancel阶段
+		loop 循环直至全部成功
+        	Fenix's Bookstore->>账号服务:取消业务，解冻货款
+        	Fenix's Bookstore->>仓库服务:取消业务， 解冻货物
+        	Fenix's Bookstore->>商家服务:取消业务
+		end
+    end
+</pre>
+<p>​	由上述操作过程可见，TCC 其实有点类似 2PC 的准备阶段和提交阶段，但 TCC 是位于<strong>用户代码层面</strong>，而不是在基础设施层面。有以下优缺点：</p>
+<ul>
+<li>优点：
+<ul>
+<li>带来了较高的灵活性，可以根据需要设计资源锁定的粒度；</li>
+<li>TCC 在业务执行时只操作预留资源，几乎不会涉及锁和资源的争用，具有很高的性能潜力。</li>
+</ul>
+</li>
+<li>缺点：
+<ul>
+<li>更高的开发成本和业务侵入性，意味着有更高的开发成本和更换事务实现方案的替换成本；</li>
+<li>实际应用中可能并不能要求第三方预留资源，如要求银行预留余额进行支付，所以Try阶段往往无法施行。</li>
+</ul>
+</li>
+</ul>
+<h2 id="saga事务">SAGA事务</h2>
+<p>​	SAGA 在英文中是“长篇故事、长篇记叙、一长串事件”的意思。SAGA 事务模式的历史十分悠久，还早于分布式事务概念的提出。</p>
+<p>​	大致思路是把一个大事务分解为可以交错运行的一系列子事务集合。原本 SAGA 的目的是避免大事务长时间锁定数据库的资源，后来才发展成将一个分布式环境中的大事务分解为一系列本地事务的设计模式。SAGA 由两部分操作组成。</p>
+<ul>
+<li>大事务拆分若干个小事务，将整个分布式事务 T 分解为 n 个子事务，命名为 T1，T2，…，Ti，…，Tn。每个子事务都应该是或者能被视为是原子行为。如果分布式事务能够正常提交，其对数据的影响（最终一致性）应与连续按顺序成功提交 Ti等价。</li>
+<li>为每一个子事务设计对应的补偿动作，命名为 C1，C2，…，Ci，…，Cn。</li>
+<li>Ti与 Ci必须满足以下条件：
+<ul>
+<li>Ti与 Ci都具备幂等性。</li>
+<li>Ti与 Ci满足交换律（Commutative），即先执行 Ti还是先执行 Ci，其效果都是一样的。</li>
+<li>Ci必须能成功提交，即不考虑 Ci本身提交失败被回滚的情形，如出现就必须持续重试直至成功，或者要人工介入。</li>
+</ul>
+</li>
+</ul>
+<p>如果 T1到 Tn均成功提交，那事务顺利完成，否则，要采取以下两种恢复策略之一：</p>
+<ul>
+<li><strong>正向恢复</strong>（Forward Recovery）：如果 Ti事务提交失败，则一直对 Ti进行重试，直至成功为止（最大努力交付）。这种恢复方式不需要补偿，适用于事务最终都要成功的场景，譬如在别人的银行账号中扣了款，就一定要给别人发货。正向恢复的执行模式为：T1，T2，…，Ti（失败），Ti（重试）…，Ti+1，…，Tn。</li>
+<li><strong>反向恢复</strong>（Backward Recovery）：如果 Ti事务提交失败，则一直执行 Ci对 Ti进行补偿，直至成功为止（最大努力交付）。这里要求 Ci必须（在持续重试后）执行成功。反向恢复的执行模式为：T1，T2，…，Ti（失败），Ci（补偿），…，C2，C1。</li>
+</ul>
+<p>​	与 TCC 相比，SAGA 不需要为资源设计冻结状态和撤销冻结的操作，补偿操作往往要比冻结操作容易实现得多（比起要求银行锁定客户货款，订单操作失败退款显然容易得多）。</p>
+<p>​	SAGA 必须保证所有子事务都得以提交或者补偿，但 SAGA 系统本身也有可能会崩溃，所以它必须设计成与数据库类似的日志机制（被称为 SAGA Log）以保证系统恢复后可以追踪到子事务的执行情况。</p>
+
+                </div>
+            </article>
+        </div>
+
+        
+            <div class="next-post">
+                <div class="next gt-c-content-color-first">下一篇</div>
+                <a href="https://faxjiangyi.github.io/post/java-zi-dong-zhuang-xiang-he-chai-xiang/" class="post-title gt-a-link">
+                    Java自动装箱和拆箱
+                </a>
+            </div>
+        
+
+        
+
+        
+
+        
+
+        <div class="site-footer gt-c-content-color-first">
+    <div class="slogan gt-c-content-color-first">我的幸福，即我与生活搏斗的故事。</div>
+    <div class="social-container">
+        
+            
+                <a href="https://github.com/faxjiangyi" target="_blank">
+                    <i class="fab fa-github gt-c-content-color-first"></i>
+                </a>
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+            
+        
+    </div>
+    <div class="footer-info">
+        <a href="/friends">友情链接</a>
+    </div>
+    <div>
+        Theme <a href="https://github.com/imhanjie/gridea-theme-pure" target="_blank">Pure</a>, Powered by <a
+                href="https://gridea.dev" target="_blank">Gridea</a> | <a href="https://faxjiangyi.github.io/atom.xml" target="_blank">RSS</a>
+    </div>
+</div>
+
+<script>
+  hljs.highlightAll()
+</script>
+
+    </div>
+</div>
+</body>
+</html>

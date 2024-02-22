@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://faxjiangyi.github.io</id>
+    <title>SilentRhythm&apos;s Blog</title>
+    <updated>2024-02-22T14:47:23.792Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://faxjiangyi.github.io"/>
+    <link rel="self" href="https://faxjiangyi.github.io/atom.xml"/>
+    <subtitle>我的幸福，即我与生活搏斗的故事。</subtitle>
+    <logo>https://faxjiangyi.github.io/images/avatar.png</logo>
+    <icon>https://faxjiangyi.github.io/favicon.ico</icon>
+    <rights>All rights reserved 2024, SilentRhythm&apos;s Blog</rights>
+    <entry>
+        <title type="html"><![CDATA[通过GitHub-Copilot使用GPT-4模型]]></title>
+        <id>https://faxjiangyi.github.io/post/tong-guo-copilot-shi-yong-gpt-4-mo-xing/</id>
+        <link href="https://faxjiangyi.github.io/post/tong-guo-copilot-shi-yong-gpt-4-mo-xing/">
+        </link>
+        <updated>2024-01-27T11:27:57.000Z</updated>
+        <summary type="html"><![CDATA[<p>由于ChatGPT-plus官方充值/开通存在诸多困难，故通过copilot使用gpt-4，支持ChatGPT-NextWeb</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>由于ChatGPT-plus官方充值/开通存在诸多困难，故通过copilot使用gpt-4，支持ChatGPT-NextWeb</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[分布式事务的解决方案]]></title>
+        <id>https://faxjiangyi.github.io/post/fen-bu-shi-shi-wu-de-jie-jue-fang-an/</id>
+        <link href="https://faxjiangyi.github.io/post/fen-bu-shi-shi-wu-de-jie-jue-fang-an/">
+        </link>
+        <updated>2023-11-10T06:55:45.000Z</updated>
+        <summary type="html"><![CDATA[<p>简单介绍XA 2PC/3PC, 消息驱动, TCC, SAGA</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>简单介绍XA 2PC/3PC, 消息驱动, TCC, SAGA</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Java自动装箱和拆箱]]></title>
+        <id>https://faxjiangyi.github.io/post/java-zi-dong-zhuang-xiang-he-chai-xiang/</id>
+        <link href="https://faxjiangyi.github.io/post/java-zi-dong-zhuang-xiang-he-chai-xiang/">
+        </link>
+        <updated>2023-11-09T06:36:37.000Z</updated>
+        <summary type="html"><![CDATA[<p>Java中基础数据类型与它们的包装类进行运算时，编译器会自动帮我们进行转换，转换过程对程序员是透明的，装箱和拆箱可以让我们的代码更简洁易懂，本质是Java的语法糖。</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>Java中基础数据类型与它们的包装类进行运算时，编译器会自动帮我们进行转换，转换过程对程序员是透明的，装箱和拆箱可以让我们的代码更简洁易懂，本质是Java的语法糖。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[MQ消息有序性保证]]></title>
+        <id>https://faxjiangyi.github.io/post/mq-xiao-xi-you-xu-xing-bao-zheng/</id>
+        <link href="https://faxjiangyi.github.io/post/mq-xiao-xi-you-xu-xing-bao-zheng/">
+        </link>
+        <updated>2023-11-07T04:53:16.000Z</updated>
+        <summary type="html"><![CDATA[<p>想实现消息有序，需要从 Producer 和 Consumer 两方面来考虑</p>
+<ul>
+<li>Producer 生产消息时就必须要有序</li>
+<li>Consumer 消费消息时，也要按顺序来</li>
+</ul>
+]]></summary>
+        <content type="html"><![CDATA[<p>想实现消息有序，需要从 Producer 和 Consumer 两方面来考虑</p>
+<ul>
+<li>Producer 生产消息时就必须要有序</li>
+<li>Consumer 消费消息时，也要按顺序来</li>
+</ul>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[logback集成logstash]]></title>
+        <id>https://faxjiangyi.github.io/post/logback-ji-cheng-logstash/</id>
+        <link href="https://faxjiangyi.github.io/post/logback-ji-cheng-logstash/">
+        </link>
+        <updated>2023-11-07T04:51:00.000Z</updated>
+        <summary type="html"><![CDATA[<h1 id="原理及效果">原理及效果</h1>
+<p>​	logstash支持从tcp输入，logback支持logstash appender，日志可以不打到文件直接打到logstash。方便集成ELK，且不挂载docker卷情况下镜像也不会增大。</p>
+]]></summary>
+        <content type="html"><![CDATA[<h1 id="原理及效果">原理及效果</h1>
+<p>​	logstash支持从tcp输入，logback支持logstash appender，日志可以不打到文件直接打到logstash。方便集成ELK，且不挂载docker卷情况下镜像也不会增大。</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[一致性哈希算法]]></title>
+        <id>https://faxjiangyi.github.io/post/yi-zhi-xing-ha-xi-suan-fa/</id>
+        <link href="https://faxjiangyi.github.io/post/yi-zhi-xing-ha-xi-suan-fa/">
+        </link>
+        <updated>2023-11-07T04:44:22.000Z</updated>
+        <summary type="html"><![CDATA[<h1 id="问题举例">问题举例</h1>
+<p>均衡负载问题：搭建Redis集群（3机），key落到哪台机？</p>
+]]></summary>
+        <content type="html"><![CDATA[<h1 id="问题举例">问题举例</h1>
+<p>均衡负载问题：搭建Redis集群（3机），key落到哪台机？</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[分表分页查询方案]]></title>
+        <id>https://faxjiangyi.github.io/post/fen-biao-fen-ye-cha-xun-fang-an/</id>
+        <link href="https://faxjiangyi.github.io/post/fen-biao-fen-ye-cha-xun-fang-an/">
+        </link>
+        <updated>2023-11-07T04:37:39.000Z</updated>
+        <summary type="html"><![CDATA[<p>解决问题：分表后，查询T表，N页（X=(N-1)*Y）的Y条数据</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>解决问题：分表后，查询T表，N页（X=(N-1)*Y）的Y条数据</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[分表非Sharding-Key怎么查询]]></title>
+        <id>https://faxjiangyi.github.io/post/fen-biao-fei-sharding-key-zen-me-cha-xun/</id>
+        <link href="https://faxjiangyi.github.io/post/fen-biao-fei-sharding-key-zen-me-cha-xun/">
+        </link>
+        <updated>2023-11-07T04:35:53.000Z</updated>
+        <summary type="html"><![CDATA[<p>假设：有用户表user，订单表order，order表通过user_id分表了，如何通过order_id查询订单？</p>
+]]></summary>
+        <content type="html"><![CDATA[<p>假设：有用户表user，订单表order，order表通过user_id分表了，如何通过order_id查询订单？</p>
+]]></content>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[G1和CMS区别]]></title>
+        <id>https://faxjiangyi.github.io/post/g1-he-cms-qu-bie/</id>
+        <link href="https://faxjiangyi.github.io/post/g1-he-cms-qu-bie/">
+        </link>
+        <updated>2023-11-07T04:16:01.000Z</updated>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Docker的网络模式]]></title>
+        <id>https://faxjiangyi.github.io/post/docker-de-wang-luo-mo-shi/</id>
+        <link href="https://faxjiangyi.github.io/post/docker-de-wang-luo-mo-shi/">
+        </link>
+        <updated>2023-11-07T04:07:32.000Z</updated>
+        <summary type="html"><![CDATA[<pre><code>bridge模式，host模式，container模式，none模式
+</code></pre>
+]]></summary>
+        <content type="html"><![CDATA[<pre><code>bridge模式，host模式，container模式，none模式
+</code></pre>
+]]></content>
+    </entry>
+</feed>
